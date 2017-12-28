@@ -23,7 +23,19 @@ var ballinitialX, ballinitialY;
 //其他玩家球的位置
 var otherBallX = 0;
 var otherBallY = 0;
-var OtherBall;
+//自身的id
+var playerid;
+//其他人的id
+var otherUserID = 0;
+var OtherBall = [];
+//其他玩家的name
+var OtherUserName = [];
+var othername;
+//鍵盤
+var mykeyboard;
+/*---地形有關---*/
+
+/*--------------------------場景--------------------------------------*/
 var state = {
 
     preload: function () {
@@ -46,6 +58,7 @@ var state = {
             /*監聽Server是否傳送連線成功事件，如果有 就會轉到create場景，並且會傳入玩家的初始位置*/
             socket.on('connect sucess', function (initialInfo) {
                 alert('連線成功:' + initialInfo.name);
+                playerid = initialInfo.id;
                 ballinitialX = initialInfo.x;
                 ballinitialY = initialInfo.y;
                 game.state.start('create');
@@ -59,6 +72,7 @@ var state = {
 
         };
         this.create = function () {
+
             game.stage.backgroundColor = '#FFFFE0';
             console.log("This Player Name : " + name);
             /*創建 自己的 球 */
@@ -66,8 +80,7 @@ var state = {
             ball.anchor.set(0.5);
             game.physics.enable(ball, Phaser.Physics.ARCADE);
             ball.body.collideWorldBounds = true;
-            ball.body.velocity.x = 100;
-            ball.body.bounce.set(1);
+            ball.body.velocity.x = 60;
 
             /*創建 名字 */
             text = game.add.text(ballinitialX, ballinitialY, name, '#fff');
@@ -75,31 +88,70 @@ var state = {
             text.align = "center";
             game.physics.enable(text, Phaser.Physics.ARCADE);
 
-            //建立其他玩家的球
-            OtherBall = game.add.sprite(0, 0, 'user');
-            game.physics.enable(OtherBall, Phaser.Physics.ARCADE);
+            //建立其他玩家的球 
+            for (var i = 0; i < 10; i++) {
+                OtherBall[i] = game.add.sprite(0, 0, 'user');
+                game.physics.enable(OtherBall[i], Phaser.Physics.ARCADE);
+                //一開始沒其他玩家的話 對此物件先隱藏不做處理
+                OtherBall[i].exists = false;
+                //其他玩家的名字
+                OtherUserName[i] = game.add.text(0, 0, '?', '#fff');
+                OtherUserName[i].fontSize = 10;
+                OtherUserName[i].align = "center";
+                game.physics.enable(OtherUserName[i], Phaser.Physics.ARCADE);
+                OtherUserName[i].exists = false;
+            }
+
+            /*--------------------創建 鍵盤---------------------------------*/
+            mykeyboard = game.input.keyboard.addKeys({
+                'up': Phaser.Keyboard.UP,
+                'down': Phaser.Keyboard.DOWN,
+                'left': Phaser.Keyboard.LEFT,
+                'right': Phaser.Keyboard.RIGHT
+            });
+
 
         };
+
 
         this.update = function () {
             //讓名字和球一起移動
             text.body.x = ball.body.x;
             text.body.y = ball.body.y;
-            //將 自己的球 位置傳送給server
+            //將 自己的球 位置 ID 傳送給server
             socket.emit('user ball position', {
-                name:name,
+                name: name,
+                id: playerid,
                 x: ball.body.x,
                 y: ball.body.y
             });
-            //收聽廣播 收聽其他玩家球的位置 並將其他玩家的位置存到全域變數中
+            //收聽廣播 收聽其他玩家球的位置 並將其他玩家的位置 和ID 存到全域變數中
             socket.on('other user position', function (data) {
-                console.log(data.name);
                 otherBallX = data.x;
                 otherBallY = data.y;
+                OtherBall[data.id].exists = true;
+                otherUserID = data.id;
+                OtherUserName[data.id].exists = true;
+                OtherUserName[data.id].setText(data.name);
             });
-            OtherBall.body.x = otherBallX;
-            OtherBall.body.y = otherBallY;
+            OtherBall[otherUserID].body.x = otherBallX;
+            OtherBall[otherUserID].body.y = otherBallY;
+            OtherUserName[otherUserID].body.x = otherBallX;
+            OtherUserName[otherUserID].body.y = otherBallY;
+
+
+
+            //當其他玩家離開時 讓他的球消失
+            socket.on('user disconnect', function (data) {
+                console.log('Other user leave' + data.id);
+                OtherBall[data.id].exists = false;
+                OtherUserName[data.id].exists = false;
+            });
+
+            /*呼叫 鍵盤 方法*/
+            ballmove();
         };
+
 
 
     },
@@ -111,22 +163,51 @@ var state = {
     over: function () {}
 };
 
-/*
-var userList = {};
 
-function addUser(id) {
-    var sprite = game.add.sprite(x, y, 'img');
-    sprite.anchor.x = 0.5;
-    userList[id] = sprite;
+/*------------------鍵盤控制----------------------------------------------*/
+function ballmove() {
+
+    if (mykeyboard.up.isDown) {
+        ball.body.velocity.y = -60;
+        ball.body.velocity.x = 0;
+    }
+    if (mykeyboard.down.isDown) {
+        ball.body.velocity.y = 60;
+        ball.body.velocity.x = 0;
+    }
+    if (mykeyboard.left.isDown) {
+        ball.body.velocity.x = -60;
+        ball.body.velocity.y = 0;
+    }
+    if (mykeyboard.right.isDown) {
+        ball.body.velocity.x = 60;
+        ball.body.velocity.y = 0;
+    }
+    /*右上*/
+    if (mykeyboard.right.isDown && mykeyboard.up.isDown) {
+        ball.body.velocity.x = 60;
+        ball.body.velocity.y = -60;
+    }
+    /*右下*/
+    if (mykeyboard.right.isDown && mykeyboard.down.isDown) {
+        ball.body.velocity.x = 60;
+        ball.body.velocity.y = 60;
+    }
+    /*左上*/
+    if (mykeyboard.left.isDown && mykeyboard.up.isDown) {
+        ball.body.velocity.x = -60;
+        ball.body.velocity.y = -60;
+    }
+    /*左下*/
+    if (mykeyboard.left.isDown && mykeyboard.down.isDown) {
+        ball.body.velocity.x = -60;
+        ball.body.velocity.y = 60;
+    }
+
 }
+/*------------------------radomBricks()用來創造地形的------------------------------------*/
 
-function init(playerList) {
-    playerList.forEach(function (player) {
-        addUser(player);
-    }, this);
-}
-*/
-
+/*--------------------------------------------------------------------------------------*/
 Object.keys(state).map(function (key) {
     game.state.add(key, state[key]);
 });
