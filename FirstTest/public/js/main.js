@@ -15,6 +15,7 @@ $(function () {
 var game = new Phaser.Game(600, 600, Phaser.AUTO, 'mygame');
 var name = null;
 var ball;
+var ballinitialX, ballinitialY;
 var state = {
 
     preload: function () {
@@ -33,9 +34,11 @@ var state = {
         this.create = function () {
 
             game.stage.backgroundColor = '#FFFFFF';
-/*監聽Server是否傳送連線成功事件，如果有 就會轉到create場景*/
-            socket.on('connect sucess', function (data) {
-                alert('連線成功:' + data);
+            /*監聽Server是否傳送連線成功事件，如果有 就會轉到create場景，並且會傳入玩家的初始位置*/
+            socket.on('connect sucess', function (initialInfo) {
+                alert('連線成功:' + initialInfo.name);
+                ballinitialX = initialInfo.x;
+                ballinitialY = initialInfo.y;
                 game.state.start('create');
             });
 
@@ -49,7 +52,7 @@ var state = {
         this.create = function () {
             game.stage.backgroundColor = '#FFFFE0';
             console.log("This Player Name : " + name);
-            ball = game.add.sprite(50, 50, 'ball');
+            ball = game.add.sprite(ballinitialX, ballinitialY, 'ball');
         };
     },
 
