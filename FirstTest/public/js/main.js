@@ -203,6 +203,7 @@ var state = {
                 OtherUserName[data.id].setText(data.name);
                 ScoreTab[data.id].setText(data.name+' score :'+data.score);
                 ScoreTab[data.id].exists = true ;
+                console.log(data.x);
             });
             OtherBall[otherUserID].body.x = otherBallX;
             OtherBall[otherUserID].body.y = otherBallY;
