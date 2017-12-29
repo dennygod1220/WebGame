@@ -34,7 +34,19 @@ var othername;
 //鍵盤
 var mykeyboard;
 /*---地形有關---*/
-
+var bricks = null;
+var bricknum = 5;
+var newbrick=[];
+var newbrick2=[];
+//接收server傳送的 障礙物位置
+var brickPosition_X=[];
+var brickPosition_Y=[];
+var brickPosition2_X=[];
+var brickPosition2_Y=[];
+/*---------------星星-------------------------*/
+var star;
+var star_x;
+var star_y;
 /*--------------------------場景--------------------------------------*/
 var state = {
 
@@ -101,7 +113,11 @@ var state = {
                 game.physics.enable(OtherUserName[i], Phaser.Physics.ARCADE);
                 OtherUserName[i].exists = false;
             }
-
+            /*--------------呼叫 創建 地形障礙物 -----------------------------*/
+            
+ 
+            radomBricks();
+            
             /*--------------------創建 鍵盤---------------------------------*/
             mykeyboard = game.input.keyboard.addKeys({
                 'up': Phaser.Keyboard.UP,
@@ -109,12 +125,46 @@ var state = {
                 'left': Phaser.Keyboard.LEFT,
                 'right': Phaser.Keyboard.RIGHT
             });
-
-
+            /*--------------------創建 星星 ----------------------------------*/
+            star = game.add.sprite(0,0,'star');
+            star.anchor.set(0.5);
+            game.physics.enable(star, Phaser.Physics.ARCADE);
+            star.exists = false;
         };
 
 
         this.update = function () {
+            //向server 發送我要 障礙物位置 請求
+            //socket.emit('I need brick position');
+
+            socket.on('test',function(data){
+                for(var i =0 ;i<5;i++){
+                    brickPosition_X[i] = data.brick1_X[i];
+                    brickPosition_Y[i] = data.brick1_Y[i];
+                    brickPosition2_X[i] = data.brick2_X[i];
+                    brickPosition2_Y[i] = data.brick2_Y[i];
+                }
+            });
+            //更新 障礙物位置
+            for(var i =0 ;i<5;i++){
+                newbrick[i].body.x=brickPosition_X[i];
+                newbrick[i].body.y = brickPosition_Y[i];
+                newbrick[i].exists = true;
+                newbrick2[i].body.x=brickPosition2_X[i];
+                newbrick2[i].body.y = brickPosition2_Y[i];
+                newbrick2[i].exists = true;
+            }
+            //啟動 障礙物 和 球 的碰撞偵測
+            game.physics.arcade.collide(ball,bricks,ballhitbricks);
+            //更新 星星位置
+            //socket.emit('I need star position');
+            socket.on('this is star position',function (starPosition) {
+                star_x = starPosition.x;
+                star_y = starPosition.y;
+            });
+            star.body.x = star_x;
+            star.body.y = star_y;
+            star.exists = true;
             //讓名字和球一起移動
             text.body.x = ball.body.x;
             text.body.y = ball.body.y;
@@ -162,7 +212,11 @@ var state = {
 
     over: function () {}
 };
-
+/*-----------------------------------------------------------------------*/
+function ballhitbricks() {
+    alert('lose');
+    location.reload();
+  }
 
 /*------------------鍵盤控制----------------------------------------------*/
 function ballmove() {
@@ -205,8 +259,29 @@ function ballmove() {
     }
 
 }
-/*------------------------radomBricks()用來創造地形的------------------------------------*/
-
+/*------------------------radomBricks()用來創造障礙物的------------------------------------*/
+function radomBricks() {
+    bricks = game.add.group();
+    for(var i = 0 ; i < bricknum ; i++){
+      var x = 0;
+      var y = 0;
+      newbrick[i] = game.add.sprite(x,y,'brick');
+      bricks.add(newbrick[i]);
+      game.physics.enable(newbrick[i],Phaser.Physics.ARCADE);
+      newbrick[i].body.immovable = false;
+      newbrick[i].exists = false;
+    }
+    for(var j = 0 ; j < bricknum ; j++){
+      var x2 = Math.floor(Math.random()*(780-20))+20;
+      var y2 = Math.floor(Math.random()*(580-20))+20;
+      newbrick2[j] = game.add.sprite(x2,y2,'brick2');
+      bricks.add(newbrick2[j]);
+      game.physics.enable(newbrick2[j],Phaser.Physics.ARCADE);
+      newbrick2[j].body.immovable = true;
+      newbrick2[j].exists = false;
+    }
+    
+  }
 /*--------------------------------------------------------------------------------------*/
 Object.keys(state).map(function (key) {
     game.state.add(key, state[key]);

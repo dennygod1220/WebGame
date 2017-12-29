@@ -15,6 +15,29 @@ server.listen(PORT);
 var playerInfo = [];
 var playerID = 0;
 var name;
+var brick1_X = [];
+var brick1_Y = [];
+var brick2_X = [];
+var brick2_Y = [];
+var star_X ;
+var star_Y ;
+/*-----------------------------初始 障礙物 位置-----------------*/
+function randomBrick(){
+for(var i=0;i<5;i++){
+    brick1_X[i] = getRandomInt(30,570);
+    brick1_Y[i] = getRandomInt(30,570);
+    brick2_X[i] = getRandomInt(30,570);
+    brick2_Y[i] = getRandomInt(30,570);
+}
+}
+randomBrick();
+/*-----------------------------初始 星星 位置--------------------*/
+function randomStar(){
+    star_X = getRandomInt(20,580);
+    star_Y = getRandomInt(20,580);
+}
+randomStar();
+/*-------------------------------------------------------------*/
 
 io.on('connection', function (socket) {
     console.log('a user is connect , this socket id is : ' + socket.id);
@@ -33,8 +56,25 @@ io.on('connection', function (socket) {
             x: getRandomInt(40, 560),
             y: getRandomInt(40, 560)
         });
+        //發送所有地形障礙物位置給玩家  
+        //socket.on('I need brick position',function(){     
+            socket.emit('test',{brick1_X:brick1_X,brick1_Y:brick1_Y,brick2_X:brick2_X,brick2_Y:brick2_Y});  
+            setInterval(function(){
+                socket.emit('test',{brick1_X:brick1_X,brick1_Y:brick1_Y,brick2_X:brick2_X,brick2_Y:brick2_Y});
+            } ,1000);
+           
+        //});
+        //接收到使用者想要星星的位置後 發送給他
+        //socket.on('I need star position',function(){
+            socket.emit('this is star position',{x:star_X,y:star_Y});
+            setInterval(function(){
+                socket.emit('this is star position',{x:star_X,y:star_Y});
+            },1000);
+        //});
     });
 
+
+    //每個玩家都會隨時發送自己當前的座標給server ， 並透過 server廣播給其他玩家
     socket.on('user ball position', function (data) {
         socket.broadcast.emit('other user position', data);
     });
