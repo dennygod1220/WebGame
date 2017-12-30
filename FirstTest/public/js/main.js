@@ -223,9 +223,6 @@ var state = {
             /*呼叫 鍵盤 方法*/
             ballmove(haveSpeed);
         };
-
-
-
     },
 
     play: function () {

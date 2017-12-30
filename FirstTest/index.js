@@ -60,6 +60,7 @@ io.on('connection', function (socket) {
         //socket.on('I need brick position',function(){     
             socket.emit('test',{brick1_X:brick1_X,brick1_Y:brick1_Y,brick2_X:brick2_X,brick2_Y:brick2_Y});  
             setInterval(function(){
+               
                 socket.emit('test',{brick1_X:brick1_X,brick1_Y:brick1_Y,brick2_X:brick2_X,brick2_Y:brick2_Y});
             } ,1000);
            
