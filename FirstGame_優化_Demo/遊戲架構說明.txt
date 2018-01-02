@@ -1,0 +1,50 @@
+==========================================Step1===================================================
+ 首先 先建立起 client 端 的Javascript Phaser 基本框架
+----------------------------------------------------------------------
+var width = 500;
+var height = 500;
+// 創建遊戲物件
+var game = new Phaser.Game(width, height, Phaser.AUTO, '#game');
+
+// 定義場景
+var state = {
+	// 加載場景
+    preload: function() {},
+    // 開始場景
+    created: function() {},
+    // 結束場景
+    over: function() {}
+};
+
+// 添加場景到遊戲物件中
+Object.keys(state).map(function(key) {
+	game.state.add(key, state[key]);
+});
+//遊戲開始
+game.state.start('preload');
+--------------------------------------------------------------------
+在這步驟中 先用Phaser框架中的state 建立起3個場景
+在這3個場景內分別可以個別的使用Phaser基本骨架preload、create和update
+
+preload : 進行資源的載入
+create : 資源載入後執行一次
+update : 一直循環的執行來處理每一貞畫面在做的事
+
+==========================================Step2===================================================
+preload: function (){} ---遊戲載入場景
+---------------------------------------------------------------------------
+        this.preload = function () {
+            game.load.image("ball", "img/ball.png");
+            game.load.image("brick", "img/brick.png");
+            game.load.image("brick2", "img/brick2.png");
+            game.load.image("up", "img/up.png");
+            game.load.image("left", "img/left.png");
+            game.load.image("down", "img/down.png");
+            game.load.image("right", "img/right.png");
+            game.load.image("star", "img/star.png");
+            game.load.image('user', 'img/user.png');
+            game.scale.pageAlignHorizontally = true;
+            game.scale.pageAlignVertically = true;
+        };
+---------------------------------------------------------------------------
+上面的這坨程式碼，主要都是用來載入圖片的，而下面倒數兩行，則是用來使遊戲畫布在瀏覽器的中央
