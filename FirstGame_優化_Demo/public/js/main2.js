@@ -95,7 +95,7 @@ var state = {
     created: function () {
         this.create = function () {
             //進入玩遊戲的時間了，先改背景顏色再說
-            game.stage.backgroundColor = '#DEDEDE';
+            game.stage.backgroundColor = '#FCFCFC';
             //把使用者的球球見出來 不然玩個屁
             ball = game.add.sprite(PlayerInfo.x, PlayerInfo.y, 'ball');
             ball.anchor.set(0.5);
@@ -256,7 +256,17 @@ var state = {
     over: function () {
         this.create = function () {
             game.stage.backgroundColor = '#FFFFFF';
-            location.reload();
+            game.add.text(80,150,"Game Over",{
+                font: "50pt Courier",
+                fill: "#19cb65",
+                stroke: "#119f4e",
+                strokeThickness: 0
+            });
+
+            setTimeout(function(){
+                location.reload();
+            },3000);
+            
         };
     }
 
@@ -297,7 +307,6 @@ function createstar() {
 }
 /*-----------------------球撞到障礙物--------------------------------*/
 function BallHitBrick() {
-    alert('你輸了，請重新來過吧');
     game.state.start('over');
 }
 /*---------------------建立初始障礙物 10 個---------------------------*/
